@@ -15,8 +15,7 @@ namespace AMT
         std::unordered_map<uint32_t, std::string> m_HashTable;
 
     public:
-        inline static HashManager *
-        Instance()
+        inline static HashManager * Instance()
         {
             if (!sm_Instance)
             {
@@ -27,7 +26,7 @@ namespace AMT
 
         uint32_t AddHash(const std::string &str);
 
-        // Functins to convert between hashes and strings
+        // Functions to convert between hashes and strings
         std::string HashToString(uint32_t hash) const;
         uint32_t StringToHash(const std::string &str) const;
     };

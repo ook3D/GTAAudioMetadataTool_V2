@@ -6,16 +6,24 @@
 
 namespace AMT
 {
-    using CategoriesMetadataHeader = BaseMetadataType
-    <
-        0, 
-        "CategoriesMetadataHeader"
-    >;
 
-    using audCategory = BaseMetadataType
+    enum class CategoryMetadataTypeId : uint8_t
+    {
+        GameMetadataHeader = 0,
+        AudCategory = 0,
+    };
+
+    class CategoriesMetadataHeader : public PlaceholderMetadataType<0, "CategoriesMetadataHeader"> 
+    {
+    public:
+        static constexpr int Type = static_cast<int>(CategoryMetadataTypeId::GameMetadataHeader);
+        static constexpr const char* Name = "CategoriesMetadataHeader";
+        
+        gameClothing() = default;
+    };
+
+    class audCategory : public SimpleBaseMetadataType
     <
-        0, 
-        "audCategory", 
         FieldType<uint32_t, "Flags">,
         FieldType<int16_t, "__field09">, 
         FieldType<int16_t, "__field0b">,
@@ -31,8 +39,22 @@ namespace AMT
         FieldType<uint16_t, "__field1f">,
         FieldType<uint16_t, "__field21">,
         FieldType<ArrayWrapper<JoaatHash, uint8_t, true>, "ChildCategories">
+    > 
+    {
+    public:
+        static constexpr int Type = static_cast<int>(CategoryMetadataTypeId::AudCategory);
+        static constexpr const char* Name = "audCategory";
+        
+        audCategory() = default;
+        audCategory(uint8_t *&data, uint32_t size) : SimpleBaseMetadataType(data, size) {}
+    };
+
+    using CategoriesMetadataContainer = BaseMetadataContainer
+    <
+        CategoriesMetadataHeader, 
+        true, 
+        audCategory
     >;
 
-    using CategoriesMetadataContainer = BaseMetadataContainer<CategoriesMetadataHeader, true, audCategory>;
     using CategoriesMetadataMgr = MetadataMgr<CategoriesMetadataContainer, 15>;
 }; // namespace AMT

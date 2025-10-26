@@ -434,25 +434,29 @@ public:
     operator float() const { return value; }
     PrecisionFloat& operator=(float f) { value = f; return *this; }
     
-    void ToJson(ordered_json &j) const {
-        // Round to 3 decimal places to avoid floating-point precision issues
-        double rounded = std::round(static_cast<double>(value) * 1000.0) / 1000.0;
+    void ToJson(ordered_json &j) const 
+    {
+        double rounded = std::round(static_cast<double>(value) * 1000.0) / 1000.0; // round to 3 decimal places
         j = rounded;
     }
     
-    void FromJson(const ordered_json &j) {
-        if (j.is_number()) {
+    void FromJson(const ordered_json &j) 
+    {
+        if (j.is_number())
+        {
             value = static_cast<float>(j.get<double>());
-        } else {
+        } 
+        else 
+        {
             value = 0.0f;
         }
     }
 };
 
 // Utility function to round floats for JSON output
-inline double roundForJson(float f) {
-    // Round to 3 decimal places to avoid floating-point precision issues
-    return std::round(static_cast<double>(f) * 1000.0) / 1000.0;
+inline double roundForJson(float f) 
+{
+    return std::round(static_cast<double>(f) * 1000.0) / 1000.0; // round to 3 decimal places
 }
 
 // Global JSON serialization functions for floats to avoid precision issues
@@ -463,9 +467,12 @@ inline void to_json(ordered_json &j, const float &f)
 
 inline void from_json(const ordered_json &j, float &f)
 {
-    if (j.is_number()) {
+    if (j.is_number()) 
+    {
         f = static_cast<float>(j.get<double>());
-    } else {
+    } 
+    else 
+    {
         f = 0.0f;
     }
 }

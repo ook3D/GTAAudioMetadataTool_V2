@@ -20,14 +20,17 @@ public:
     std::tuple<Args...> Data;
 
     SimpleBaseMetadataType() = default;
-    SimpleBaseMetadataType(uint8_t *&data, uint32_t size) { 
+    SimpleBaseMetadataType(uint8_t *&data, uint32_t size) 
+    { 
         data = Read(data); 
     }
 
     // Recursively collect archive offsets from all fields
     template <unsigned int i = 0>
-    void GetArchiveOffsets(std::vector<uint32_t> &offsets, uint32_t currentOffset = 0) const {
-        if constexpr (i < sizeof...(Args)) {
+    void GetArchiveOffsets(std::vector<uint32_t> &offsets, uint32_t currentOffset = 0) const 
+    {
+        if constexpr (i < sizeof...(Args)) 
+        {
             BasicData::GetArchiveOffsets(offsets, currentOffset, std::get<i>(Data));
             currentOffset += BasicData::GetSize(0, std::get<i>(Data).Data);
             GetArchiveOffsets<i + 1>(offsets, currentOffset);
@@ -36,11 +39,13 @@ public:
 
     // Convert all named fields to JSON
     template <unsigned int i = 0>
-    void ToJson(ordered_json &json) const {
-        if constexpr (i < sizeof...(Args)) {
+    void ToJson(ordered_json &json) const 
+    {
+        if constexpr (i < sizeof...(Args)) 
+        {
             const auto& field = std::get<i>(Data);
-            if (field.Name[0] != '\0') {  // Only include named fields
-                // Use to_json to ensure custom serialization (like float precision) is applied
+            if (field.Name[0] != '\0')
+            {
                 to_json(json[field.Name], field.Data);
             }
             ToJson<i + 1>(json);
@@ -49,10 +54,13 @@ public:
 
     // Load all named fields from JSON
     template <unsigned int i = 0>
-    void FromJson(const ordered_json &json) {
-        if constexpr (i < sizeof...(Args)) {
+    void FromJson(const ordered_json &json)
+     {
+        if constexpr (i < sizeof...(Args))
+        {
             auto& field = std::get<i>(Data);
-            if (field.Name[0] != '\0') {  // Only load named fields
+            if (field.Name[0] != '\0') 
+            {
                 field.Data = json.at(field.Name);
             }
             FromJson<i + 1>(json);
@@ -60,8 +68,10 @@ public:
     }
 
     template <unsigned int i = 0>
-    void GetHashOffsets(std::vector<uint32_t> &out, uint32_t currentOffset = 0) const {
-        if constexpr (i < sizeof...(Args)) {
+    void GetHashOffsets(std::vector<uint32_t> &out, uint32_t currentOffset = 0) const 
+    {
+        if constexpr (i < sizeof...(Args)) 
+        {
             BasicData::GetHashOffsets(out, currentOffset, std::get<i>(Data));
             currentOffset += BasicData::GetSize(0, std::get<i>(Data).Data);
             GetHashOffsets<i + 1>(out, currentOffset);
@@ -69,8 +79,10 @@ public:
     }
 
     template <unsigned int i = 0>
-    inline void GetArchiveNames(nlohmann::fifo_map<std::string, int> &out) const {
-        if constexpr (i < sizeof...(Args)) {
+    inline void GetArchiveNames(nlohmann::fifo_map<std::string, int> &out) const 
+    {
+        if constexpr (i < sizeof...(Args)) 
+        {
             BasicData::GetArchiveNames(out, std::get<i>(Data));
             GetArchiveNames<i + 1>(out);
         }
@@ -78,10 +90,14 @@ public:
 
     // Calculate total size of all fields
     template <unsigned int i = 0>
-    uint32_t GetSize(uint32_t initialSize = 0) const {
-        if constexpr (i == sizeof...(Args)) {
+    uint32_t GetSize(uint32_t initialSize = 0) const 
+    {
+        if constexpr (i == sizeof...(Args)) 
+        {
             return initialSize;
-        } else {
+        }
+        else
+        {
             initialSize = BasicData::GetSize(initialSize, std::get<i>(Data).Data);
             return GetSize<i + 1>(initialSize);
         }
@@ -89,10 +105,14 @@ public:
 
     // Read all fields from binary data
     template <unsigned int i = 0>
-    uint8_t* Read(uint8_t *data) {
-        if constexpr (i == sizeof...(Args)) {
+    uint8_t* Read(uint8_t *data) 
+    {
+        if constexpr (i == sizeof...(Args)) 
+        {
             return data;
-        } else {
+        } 
+        else 
+        {
             data = BasicData::Read(data, std::get<i>(Data).Data);
             return Read<i + 1>(data);
         }
@@ -100,10 +120,14 @@ public:
 
     // Write all fields to binary stream
     template <unsigned int i = 0>
-    void Write(std::ostream &stream) {
-        if constexpr (i == sizeof...(Args)) {
+    void Write(std::ostream &stream) 
+    {
+        if constexpr (i == sizeof...(Args)) 
+        {
             return;
-        } else {
+        } 
+        else 
+        {
             BasicData::Write(stream, std::get<i>(Data).Data);
             Write<i + 1>(stream);
         }
@@ -145,12 +169,11 @@ public:
     template <unsigned int i = 0>
     void ToJson(ordered_json &json) const
     {
-        if constexpr (i < sizeof...(Args)) 
+        if constexpr (i < sizeof...(Args))
         {
             const auto& field = std::get<i>(Data);
-            if (field.Name[0] != '\0') 
-            {   // Only include named fields
-                // Use to_json to ensure custom serialization (like float precision) is applied
+            if (field.Name[0] != '\0')
+            {
                 to_json(json[field.Name], field.Data);
             }
             ToJson<i + 1>(json);
@@ -159,13 +182,13 @@ public:
 
     // Load all named fields from JSON
     template <unsigned int i = 0>
-    void FromJson(const ordered_json &json) 
+    void FromJson(const ordered_json &json)
     {
-        if constexpr (i < sizeof...(Args)) 
+        if constexpr (i < sizeof...(Args))
         {
             auto& field = std::get<i>(Data);
-            if (field.Name[0] != '\0') 
-            {   // Only load named fields
+            if (field.Name[0] != '\0')
+            {
                 field.Data = json.at(field.Name);
             }
             FromJson<i + 1>(json);
@@ -314,7 +337,6 @@ public:
         {
             if (std::get<i>(this->Data).Data.HasValue())
             {
-                // Use to_json to ensure custom serialization (like float precision) is applied
                 to_json(j[std::get<i>(this->Data).Name], std::get<i>(this->Data).Data);
             }
             ToJson<i + 1>(j);
@@ -367,25 +389,33 @@ public:
         in = Header.Read(in);
         
         // Helper to get type ID from either GetId() method or static Type member
-        auto getTypeId = []<typename T>() -> int {
-            if constexpr (requires { T::GetId(); }) {
+        auto getTypeId = []<typename T>() -> int 
+        {
+            if constexpr (requires { T::GetId(); }) 
+            {
                 return T::GetId();
-            } else if constexpr (requires { T::Type; }) {
+            }
+            else if constexpr (requires { T::Type; }) 
+            {
                 return T::Type;
-            } else {
+            } 
+            else
+            {
                 return -1;
             }
         };
         
         // Helper to construct the appropriate type
-        auto constructType = [&]<typename T>() -> T {
+        auto constructType = [&]<typename T>() -> T 
+        {
             uint32_t remainingSize = size - GetHeaderSize();
-            if constexpr (requires { T(in, remainingSize); }) {
-                // For types that have constructor with (uint8_t*&, uint32_t)
-                return T(in, remainingSize);
-            } else {
-                // For types that only have default constructor
-                return T{};
+            if constexpr (requires { T(in, remainingSize); })
+            {
+                return T(in, remainingSize); // For types that have constructor with (uint8_t*&, uint32_t)
+            } 
+            else 
+            {
+                return T{}; // For types that only have default constructor
             }
         };
         
@@ -395,11 +425,15 @@ public:
     void Write(std::ostream &out, uint32_t nameOffset)
     {
         uint8_t Id = 0;
-        std::visit([&] (auto &&arg) { 
+        std::visit([&] (auto &&arg) 
+        { 
             using T = std::decay_t<decltype(arg)>;
-            if constexpr (requires { arg.GetId(); }) {
+            if constexpr (requires { arg.GetId(); }) 
+            {
                 Id = arg.GetId();
-            } else if constexpr (requires { T::Type; }) {
+            } 
+            else if constexpr (requires { T::Type; }) 
+            {
                 Id = T::Type;
             }
         }, Data);
@@ -424,9 +458,12 @@ public:
         std::visit([&] (auto &&arg) 
         {
             using T = std::decay_t<decltype(arg)>;
-            if constexpr (requires { arg.TypeName; }) {
+            if constexpr (requires { arg.TypeName; }) 
+            {
                 j["Type"] = arg.TypeName;
-            } else if constexpr (requires { T::Name; }) {
+            } 
+            else if constexpr (requires { T::Name; }) 
+            {
                 j["Type"] = T::Name;
             }
             to_json(j, Header);
@@ -439,12 +476,18 @@ public:
     {
         from_json(j, Header);
         
-        auto getTypeName = []<typename T>() -> const char* {
-            if constexpr (requires { T::TypeName; }) {
+        auto getTypeName = []<typename T>() -> const char* 
+        {
+            if constexpr (requires { T::TypeName; })
+            {
                 return T::TypeName;
-            } else if constexpr (requires { T::Name; }) {
+            }
+            else if constexpr (requires { T::Name; })
+            {
                 return T::Name;
-            } else {
+            } 
+            else
+            {
                 return "";
             }
         };
