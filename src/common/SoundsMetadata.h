@@ -88,8 +88,8 @@ namespace AMT
     // Looping Sound
     class audLoopingSound : public SimpleBaseMetadataType
     <
-        FieldType<uint16_t, "__field00">,
-        FieldType<uint16_t, "__field02">,
+        FieldType<uint16_t, "LoopCount">,
+        FieldType<uint16_t, "LoopCountVariance">,
         FieldType<JoaatHash, "SoundHash", true>
     >
     {
@@ -555,24 +555,24 @@ namespace AMT
         // Flags for the header
         FieldType<OptionalBitfieldContainer
         <
-            FieldType<OptionalWrapper<uint16_t>, "__field0">,
-            FieldType<OptionalWrapper<uint16_t>, "__field1">,
-            FieldType<OptionalWrapper<uint16_t>, "__field2">,
-            FieldType<OptionalWrapper<uint16_t>, "__field3">,
-            FieldType<OptionalWrapper<uint16_t>, "__field4">,
-            FieldType<OptionalWrapper<uint16_t>, "__field5">,
-            FieldType<OptionalWrapper<uint16_t>, "__field6">,
-            FieldType<OptionalWrapper<uint16_t>, "__field7">,
-            FieldType<OptionalWrapper<uint32_t>, "__field8">,
-            FieldType<OptionalWrapper<uint32_t>, "__field9">,
-            FieldType<OptionalWrapper<uint16_t>, "__field10">,
-            FieldType<OptionalWrapper<uint16_t>, "__field11">,
-            FieldType<OptionalWrapper<uint16_t>, "__field12">,
+            FieldType<OptionalWrapper<int16_t>, "Volume">,
+            FieldType<OptionalWrapper<uint16_t>, "VolumeVariance">,
+            FieldType<OptionalWrapper<int16_t>, "Pitch">,
+            FieldType<OptionalWrapper<uint16_t>, "PitchVariance">,
+            FieldType<OptionalWrapper<uint16_t>, "Pan">,
+            FieldType<OptionalWrapper<uint16_t>, "PanVariance">,
+            FieldType<OptionalWrapper<int16_t>, "PreDelay">,
+            FieldType<OptionalWrapper<uint16_t>, "PreDelayVariance">,
+            FieldType<OptionalWrapper<int32_t>, "StartOffset">,
+            FieldType<OptionalWrapper<int32_t>, "StartOffsetVariance">,
+            FieldType<OptionalWrapper<uint16_t>, "AttackTime">,
+            FieldType<OptionalWrapper<uint16_t>, "ReleaseTime">,
+            FieldType<OptionalWrapper<uint16_t>, "DopplerFactor">,
             FieldType<OptionalWrapper<JoaatHash>, "CategoryHash">,
-            FieldType<OptionalWrapper<uint32_t>, "__field14">,
-            FieldType<OptionalWrapper<uint16_t>, "__field15">,
-            FieldType<OptionalWrapper<uint8_t>, " __field16">,
-            FieldType<OptionalWrapper<uint8_t>, " __field17">,
+            FieldType<OptionalWrapper<uint32_t>, "LPFCutoff">,
+            FieldType<OptionalWrapper<uint16_t>, "HPFCutoff">,
+            FieldType<OptionalWrapper<int8_t>, "SpeakerMask">,
+            FieldType<OptionalWrapper<int8_t>, "EffectRoute">,
             FieldType<OptionalWrapper<JoaatHash>, "VolumeVariable">,
             FieldType<OptionalWrapper<JoaatHash>, "PitchVariable">,
             FieldType<OptionalWrapper<JoaatHash>, "PanVariable">,
