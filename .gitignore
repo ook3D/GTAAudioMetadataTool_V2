@@ -1,0 +1,31 @@
+# Build outputs
+bin/
+bin-int/
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+vendor/
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Dependencies (will be cloned by setup script)
+vendor/
+
+# Windows generated files
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Premake executable (optional - you can commit this if you want)
+# premake5.exe
