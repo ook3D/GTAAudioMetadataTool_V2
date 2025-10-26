@@ -90,6 +90,7 @@ namespace AMT
         static constexpr const char* Name = "gameCollision";
         
         gameCollision() = default;
+        gameCollision(uint8_t *&data, uint32_t size) : PlaceholderMetadataType(data, size) {}
     };
 
     // Clothing
@@ -100,6 +101,7 @@ namespace AMT
         static constexpr const char* Name = "gameClothing";
         
         gameClothing() = default;
+        gameClothing(uint8_t *&data, uint32_t size) : PlaceholderMetadataType(data, size) {}
     };
 
     // Door
@@ -110,6 +112,7 @@ namespace AMT
         static constexpr const char* Name = "gameDoor";
         
         gameDoor() = default;
+        gameDoor(uint8_t *&data, uint32_t size) : PlaceholderMetadataType(data, size) {}
     };
 
     // Cutscene Category
@@ -213,6 +216,7 @@ namespace AMT
         static constexpr const char* Name = "gameFootsteps";
         
         gameFootsteps() = default;
+        gameFootsteps(uint8_t *&data, uint32_t size) : PlaceholderMetadataType(data, size) {}
     };
 
     // Interior Room
@@ -265,6 +269,7 @@ namespace AMT
         static constexpr const char* Name = "gameMeleeCombat";
         
         gameMeleeCombat() = default;
+        gameMeleeCombat(uint8_t *&data, uint32_t size) : PlaceholderMetadataType(data, size) {}
     };
 
     // Crime Instruction
@@ -432,16 +437,18 @@ namespace AMT
         static constexpr const char* Name = "gamePed";
         
         gamePed() = default;
+        gamePed(uint8_t *&data, uint32_t size) : PlaceholderMetadataType(data, size) {}
     };
 
     // Train Station
     class gameTrainStation : public PlaceholderMetadataType<22, "gameTrainStation">
-     {
+    {
     public:
         static constexpr int Type = static_cast<int>(GameMetadataTypeId::TrainStation);
         static constexpr const char* Name = "gameTrainStation";
         
         gameTrainStation() = default;
+        gameTrainStation(uint8_t *&data, uint32_t size) : PlaceholderMetadataType(data, size) {}
     };
 
     // Vehicle Types
@@ -551,6 +558,7 @@ namespace AMT
         static constexpr const char* Name = "gameBoat";
         
         gameBoat() = default;
+        gameBoat(uint8_t *&data, uint32_t size) : PlaceholderMetadataType(data, size) {}
     };
 
     class gameHeli : public PlaceholderMetadataType<4, "gameHeli"> 
@@ -560,6 +568,7 @@ namespace AMT
         static constexpr const char* Name = "gameHeli";
         
         gameHeli() = default;
+        gameHeli(uint8_t *&data, uint32_t size) : PlaceholderMetadataType(data, size) {}
     };
 
     // Weapon
@@ -614,6 +623,7 @@ namespace AMT
         static constexpr const char* Name = "gameScriptedReport";
         
         gameScriptedReport() = default;
+        gameScriptedReport(uint8_t *&data, uint32_t size) : PlaceholderMetadataType(data, size) {}
     };
 
     // Sound Rules
