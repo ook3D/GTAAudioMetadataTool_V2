@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "common/SoundsMetadata.h"
 #include "common/MetadataMgr.h"
 #include "common/HashManager.h"

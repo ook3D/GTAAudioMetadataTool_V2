@@ -548,7 +548,7 @@ namespace AMT
     class SoundsMetadataHeader : public BaseMetadataType
     <
         0,
-        "SoundsMetadataHeader", 
+        "SoundsMetadataHeader",
         FieldType<uint32_t, "Flags">,
         FieldType<uint16_t, "__unk09">,
 
