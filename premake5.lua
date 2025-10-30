@@ -8,6 +8,8 @@ startproject "ivam"
 -- Global settings
 flags { "MultiProcessorCompile" }
 systemversion "latest"
+buildoptions { "/MP" }
+linkoptions { "/INCREMENTAL:NO" }
 
 -- Output directories
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
@@ -25,6 +27,9 @@ staticruntime "on"
 
 targetdir("bin/" .. outputdir .. "/%{prj.name}")
 objdir("bin-int/" .. outputdir .. "/%{prj.name}")
+
+pchheader "pch.h"
+pchsource "src/pch.cpp"
 
 files
 {
@@ -44,19 +49,35 @@ includedirs
 }
 
 defines { "_CRT_SECURE_NO_WARNINGS", "_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS" }
-buildoptions { "/bigobj", "/Zc:__cplusplus" }
+buildoptions { 
+    "/bigobj", 
+    "/Zc:__cplusplus",
+    "/permissive-",
+    "/Zc:preprocessor"
+}
 
 filter "configurations:Debug"
 defines { "DEBUG", "_DEBUG" }
 runtime "Debug"
 symbols "on"
 optimize "off"
+buildoptions { "/JMC" }
+linkoptions { "/DEBUG:FASTLINK" }
 
 filter "configurations:Release"
 defines { "NDEBUG", "RELEASE" }
 runtime "Release"
 symbols "off"
 optimize "speed"
+buildoptions { 
+    "/GL",
+    "/Gy"
+}
+linkoptions { 
+    "/LTCG",
+    "/OPT:REF",
+    "/OPT:ICF"
+}
 
 -- Custom actions for dependency management
 newaction {
