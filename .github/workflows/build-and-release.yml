@@ -59,23 +59,64 @@ jobs:
         name: GTAAudioMetadataTool-${{ github.sha }}
         path: release/
 
-    - name: Get commit info
-      id: commit
+    - name: Get commit info and calculate version
+      id: version
       run: |
         $shortSha = "${{ github.sha }}".Substring(0, 7)
         $commitMsg = git log -1 --pretty=format:"%s"
+        
+        # Get the latest release version
+        try {
+          $latestRelease = gh release list --limit 1 --json tagName | ConvertFrom-Json
+          if ($latestRelease.Count -gt 0) {
+            $latestTag = $latestRelease[0].tagName
+            if ($latestTag -match '^v?(\d+)\.(\d+)\.(\d+)$') {
+              $major = [int]$matches[1]
+              $minor = [int]$matches[2]
+              $patch = [int]$matches[3]
+              
+              # Increment patch version
+              $patch++
+              
+              # if patch reaches 10, increment minor and reset patch
+              if ($patch -eq 10) {
+                $minor++
+                $patch = 0
+              }
+              
+              # if minor reaches 10, increment major and reset minor
+              if ($minor -eq 10) {
+                $major++
+                $minor = 0
+              }
+              
+              $newVersion = "$major.$minor.$patch"
+            } else {
+              $newVersion = "1.0.0"
+            }
+          } else {
+            $newVersion = "1.0.0"
+          }
+        } catch {
+          $newVersion = "1.0.0"
+        }
+        
+        echo "version=$newVersion" >> $env:GITHUB_OUTPUT
         echo "short_sha=$shortSha" >> $env:GITHUB_OUTPUT
         echo "commit_message=$commitMsg" >> $env:GITHUB_OUTPUT
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: build-${{ steps.commit.outputs.short_sha }}
-        name: "Auto Release - ${{ steps.commit.outputs.short_sha }}"
+        tag_name: v${{ steps.version.outputs.version }}
+        name: "Release v${{ steps.version.outputs.version }}"
         body: |
+          **Version:** ${{ steps.version.outputs.version }}
           **Automated release from commit:** ${{ github.sha }}
           
-          **Commit message:** ${{ steps.commit.outputs.commit_message }}
+          **Commit message:** ${{ steps.version.outputs.commit_message }}
           
           **Changes in this release:**
           - Built from latest main branch
