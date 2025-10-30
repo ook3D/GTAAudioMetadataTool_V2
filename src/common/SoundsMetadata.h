@@ -43,7 +43,7 @@ namespace AMT
     // Simple sound
     class audSimpleSound : public SimpleBaseMetadataType
     <
-        FieldType<uint32_t, "__field00">,
+        FieldType<uint32_t, "WaveSlotIndex">,
         FieldType<JoaatHash, "ArchiveHash", false, true>,
         FieldType<JoaatHash, "SoundHash">
     >
@@ -60,7 +60,7 @@ namespace AMT
     class audMultitrackSound_Track : public SimpleBaseMetadataType
     <
         FieldType<JoaatHash, "TrackHash", true>,
-        FieldType<uint32_t, "__field04">
+        FieldType<uint32_t, "unused">
     >
     {
     public:
@@ -104,19 +104,19 @@ namespace AMT
     // Envelope Sound
     class audEnvelopeSound : public SimpleBaseMetadataType
     <
-        FieldType<uint16_t, "__field00">,
-        FieldType<uint16_t, "__field02">, 
-        FieldType<uint8_t, "__field04">,
-        FieldType<int32_t, "__field05">, 
-        FieldType<int32_t, "__field09">,
-        FieldType<JoaatHash, "UnkCurveHash1">,
-        FieldType<JoaatHash, "UnkCurveHash2">,
-        FieldType<JoaatHash, "UnkCurveHash3">,
-        FieldType<JoaatHash, "VariableHash1">,
-        FieldType<JoaatHash, "VariableHash2">,
-        FieldType<JoaatHash, "VariableHash3">,
-        FieldType<JoaatHash, "VariableHash4">,
-        FieldType<JoaatHash, "VariableHash5">,
+        FieldType<uint16_t, "Attack">,
+        FieldType<uint16_t, "Decay">, 
+        FieldType<uint8_t, "Sustain">,
+        FieldType<int32_t, "Hold">, 
+        FieldType<int32_t, "Release">,
+        FieldType<JoaatHash, "AttackCurve">,
+        FieldType<JoaatHash, "DecayCurve">,
+        FieldType<JoaatHash, "ReleaseCurve">,
+        FieldType<JoaatHash, "AttackVariable">,
+        FieldType<JoaatHash, "DecayVariable">,
+        FieldType<JoaatHash, "SustainVariable">,
+        FieldType<JoaatHash, "HoldVariable">,
+        FieldType<JoaatHash, "ReleaseVariable">,
         FieldType<JoaatHash, "SoundHash", true>
     >
     {
@@ -133,7 +133,7 @@ namespace AMT
     <
         FieldType<JoaatHash, "Hash">, 
         FieldType<float, "Data">,
-        FieldType<uint8_t, "__field08">
+        FieldType<uint8_t, "VariableType">
     >
     {
     public:
@@ -221,9 +221,9 @@ namespace AMT
     class audVariableCurveSound : public SimpleBaseMetadataType
     <
         FieldType<JoaatHash, "SoundHash", true>,
-        FieldType<JoaatHash, "UnkVariableA">, 
-        FieldType<JoaatHash, "UnkVariableB">,
-        FieldType<JoaatHash, "UnkCurvesHash">
+        FieldType<JoaatHash, "InputVariable">, 
+        FieldType<JoaatHash, "OutputVariable">,
+        FieldType<JoaatHash, "Curve">
     >
     {
     public:
@@ -252,9 +252,9 @@ namespace AMT
     // Randomized Sound
     class audRandomizedSound : public SimpleBaseMetadataType
     <
-        FieldType<uint32_t, "__field00">,
-        FieldType<uint8_t, "__field04">,
-        FieldType<ArrayWrapper<uint8_t>, "__field06">,
+        FieldType<uint32_t, "unused">,
+        FieldType<uint8_t, "HistoryIndex">,
+        FieldType<ArrayWrapper<uint8_t>, "HistorySpace">,
         FieldType<ArrayWrapper<audRandomizedSound_Sound>, "Sounds">
     >
     {
@@ -285,7 +285,7 @@ namespace AMT
     class audTwinLoopSound_Sound : public SimpleBaseMetadataType
     <
         FieldType<JoaatHash, "SoundHash", true>,
-        FieldType<uint32_t, "__field04">
+        FieldType<uint32_t, "unused">
     >
     {
     public:
@@ -299,15 +299,15 @@ namespace AMT
     // Twin Loop Sound
     class audTwinLoopSound : public SimpleBaseMetadataType
     <
-        FieldType<int16_t, "__field00">,
-        FieldType<int16_t, "__field02">, 
-        FieldType<int16_t, "__field04">,
-        FieldType<int16_t, "__field06">, 
-        FieldType<JoaatHash, "Mode">,
-        FieldType<JoaatHash, "VariableHash1">,
-        FieldType<JoaatHash, "VariableHash2">,
-        FieldType<JoaatHash, "VariableHash3">,
-        FieldType<JoaatHash, "VariableHash4">,
+        FieldType<int16_t, "MinSwapTime">,
+        FieldType<int16_t, "MaxSwapTime">, 
+        FieldType<int16_t, "MinCrossfadeTime">,
+        FieldType<int16_t, "MaxCrossfadeTime">, 
+        FieldType<JoaatHash, "CrossfadeCurve">,
+        FieldType<JoaatHash, "MinSwapTimeVariable">,
+        FieldType<JoaatHash, "MaxSwapTimeVariable">,
+        FieldType<JoaatHash, "MinCrossfadeTimeVariable">,
+        FieldType<JoaatHash, "MaxCrossfadeTimeVariable">,
         FieldType<ArrayWrapper<audTwinLoopSound_Sound>, "Sounds">
     >
     {
@@ -352,10 +352,10 @@ namespace AMT
     // Retriggered Overlapped Sound
     class audRetriggeredOverlappedSound : public SimpleBaseMetadataType
     <
-        FieldType<int16_t, "__field00">,
-        FieldType<uint16_t, "__field02">, 
-        FieldType<JoaatHash, "VariableHash1">,
-        FieldType<JoaatHash, "VariableHash2">,
+        FieldType<int16_t, "LoopCount">,
+        FieldType<uint16_t, "DelayTime">, 
+        FieldType<JoaatHash, "LoopCountVariable">,
+        FieldType<JoaatHash, "DelayTimeVariable">,
         FieldType<JoaatHash, "SoundHash", true>
     >
     {
@@ -423,7 +423,7 @@ namespace AMT
     class audVariablePrintValueSound : public SimpleBaseMetadataType
     <
         FieldType<JoaatHash, "VariableHash">,
-        FieldType<FixedArrayWrapper<uint8_t, 15>, "__field04">
+        FieldType<FixedArrayWrapper<uint8_t, 15>, "Value">
     >
     {
     public:
@@ -439,15 +439,15 @@ namespace AMT
     <
         FieldType<JoaatHash, "NearSound", true>,
         FieldType<JoaatHash, "FarSound", true>, 
-        FieldType<uint8_t, "__field08">,
-        FieldType<int32_t, "__field09">, 
-        FieldType<int32_t, "__field0d">,
-        FieldType<int32_t, "__field11">, 
-        FieldType<JoaatHash, "VariableHash1">,
-        FieldType<JoaatHash, "VariableHash2">, 
-        FieldType<int32_t, "__field1d">,
-        FieldType<JoaatHash, "VariableHash3">,
-        FieldType<JoaatHash, "UnkCurvesHash">
+        FieldType<uint8_t, "Mode">,
+        FieldType<float, "MinDistance">, 
+        FieldType<float, "MaxDistance">,
+        FieldType<int32_t, "Hysteresis">, 
+        FieldType<JoaatHash, "CrossfadeCurve">,
+        FieldType<JoaatHash, "DistanceVariable">, 
+        FieldType<JoaatHash, "MinDistanceVariable">,
+        FieldType<JoaatHash, "MaxDistanceVariable">,
+        FieldType<JoaatHash, "CrossfadeVariable">
     >
     {
     public:
@@ -461,7 +461,7 @@ namespace AMT
     // Streaming Sound
     class audStreamingSound : public SimpleBaseMetadataType
     <
-        FieldType<uint32_t, "__field00">,
+        FieldType<uint32_t, "Duration">,
         FieldType<ArrayWrapper<audTwinLoopSound_Sound>, "Sounds">
     >
     {
@@ -476,16 +476,16 @@ namespace AMT
     // Collapsing Stereo Sound
     class audCollapsingStereoSound : public SimpleBaseMetadataType
     <
-        FieldType<JoaatHash, "SoundHash1", true>,
-        FieldType<JoaatHash, "SoundHash2", true>, 
-        FieldType<float, "__field08">,
-        FieldType<float, "__field0c">, 
-        FieldType<JoaatHash, "VariableHash1">,
-        FieldType<JoaatHash, "VariableHash2">,
-        FieldType<JoaatHash, "VariableHash3">,
-        FieldType<JoaatHash, "VariableHash4">,
-        FieldType<JoaatHash, "VariableHash5">, 
-        FieldType<uint8_t, "__field24">
+        FieldType<JoaatHash, "LeftSound", true>,
+        FieldType<JoaatHash, "RightSound", true>, 
+        FieldType<float, "MinDistance">,
+        FieldType<float, "MaxDistance">, 
+        FieldType<JoaatHash, "MinDistanceVariable">,
+        FieldType<JoaatHash, "MaxDistanceVariable">,
+        FieldType<JoaatHash, "CrossfadeOverrideVariable">,
+        FieldType<JoaatHash, "FrontendLeftPanVariable">,
+        FieldType<JoaatHash, "FrontendRightPanVariable">, 
+        FieldType<uint8_t, "Mode">
     >
     {
     public:
