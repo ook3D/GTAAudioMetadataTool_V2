@@ -569,7 +569,7 @@ namespace AMT
             FieldType<OptionalWrapper<uint16_t>, "ReleaseTime">,
             FieldType<OptionalWrapper<uint16_t>, "DopplerFactor">,
             FieldType<OptionalWrapper<JoaatHash>, "CategoryHash">,
-            FieldType<OptionalWrapper<JoaatHash>, "LPFCutoff">,
+            FieldType<OptionalWrapper<JoaatHash>, "VolumeCurve">,
             FieldType<OptionalWrapper<uint16_t>, "VolumeCurveScale">,
             FieldType<OptionalWrapper<int8_t>, "SpeakerMask">,
             FieldType<OptionalWrapper<int8_t>, "EffectRoute">,
