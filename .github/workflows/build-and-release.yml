@@ -113,15 +113,9 @@ jobs:
         tag_name: v${{ steps.version.outputs.version }}
         name: "Release v${{ steps.version.outputs.version }}"
         body: |
-          **Version:** ${{ steps.version.outputs.version }}
           **Automated release from commit:** ${{ github.sha }}
           
           **Commit message:** ${{ steps.version.outputs.commit_message }}
-          
-          **Changes in this release:**
-          - Built from latest main branch
-          - Includes ivam.exe (Release build)
-          - Includes Hashes.txt and README.md
           
           **Usage:**
           1. Download and extract the release
