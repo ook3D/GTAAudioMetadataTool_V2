@@ -26,7 +26,7 @@ cppdialect "C++20"
 staticruntime "on"
 
 targetdir("bin/" .. outputdir .. "/%{prj.name}")
-objdir("bin-int/" .. outputdir .. "/%{prj.name}")
+objdir("src/obj/" .. outputdir .. "/%{prj.name}")
 
 pchheader "pch.h"
 pchsource "src/pch.cpp"

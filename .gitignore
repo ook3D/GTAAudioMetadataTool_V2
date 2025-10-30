@@ -1,6 +1,6 @@
 # Build outputs
 bin/
-bin-int/
+src/obj/
 *.sln
 *.vcxproj
 *.vcxproj.filters
