@@ -196,7 +196,7 @@ namespace AMT
         FieldType<float, "NightProbability">,
         FieldType<float, "ConeInnerAngle">,
         FieldType<float, "ConeOuterAngle">,
-        FieldType<JoaatHash, "StopAfterLoudSound">,
+        FieldType<float, "ConeMaxAtten">,
         FieldType<int32_t, "unk2">
     > 
     {
