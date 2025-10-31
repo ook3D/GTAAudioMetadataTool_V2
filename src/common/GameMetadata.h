@@ -196,7 +196,7 @@ namespace AMT
         FieldType<float, "NightProbability">,
         FieldType<float, "ConeInnerAngle">,
         FieldType<float, "ConeOuterAngle">,
-        FieldType<int32_t, "unk1">,
+        FieldType<JoaatHash, "StopAfterLoudSound">,
         FieldType<int32_t, "unk2">
     > 
     {
@@ -319,9 +319,15 @@ namespace AMT
     // Radio Station Track Category
     #define X EnumWrapperValue
     using eRadioStationTrackCategoryType = EnumWrapper<uint8_t, 
-        X{"AD", 0}, X{"IDENT", 1}, X{"MUSIC", 2},
-        X{"NEWS", 3}, X{"WEATHER", 4}, X{"DJ_SOLO", 5},
-        X{"USER_INTRO", 6}, X{"USER_OUTRO", 7}, X{"USER_TO_AD", 8},
+        X{"AD", 0}, 
+        X{"IDENT", 1},
+        X{"MUSIC", 2},
+        X{"NEWS", 3}, 
+        X{"WEATHER", 4}, 
+        X{"DJ_SOLO", 5},
+        X{"USER_INTRO", 6}, 
+        X{"USER_OUTRO", 7}, 
+        X{"USER_TO_AD", 8},
         X{"USER_TO_NEWS", 9}
     >;
     #undef X
@@ -329,8 +335,8 @@ namespace AMT
     // Radio Station Track Category Track
     class gameRadioStationTrackCategory_Track : public SimpleBaseMetadataType
     <
-        FieldType<JoaatHash, "Identifier">,
-        FieldType<JoaatHash, "Hash">
+        FieldType<JoaatHash, "Context">,
+        FieldType<JoaatHash, "SoundRef">
     > 
     {
     public:
@@ -345,11 +351,11 @@ namespace AMT
     class gameRadioStationTrackCategory : public SimpleBaseMetadataType
     <
         FieldType<eRadioStationTrackCategoryType, "Type">,
-        FieldType<uint32_t, "Unknown1">,
-        FieldType<uint8_t, "Unknown2">,
-        FieldType<ArrayWrapper<JoaatHash>, "RuntimeRecentTracks">,
-        FieldType<uint16_t, "Unknown3">,
-        FieldType<uint32_t, "__field31">,
+        FieldType<uint32_t, "padding00">,
+        FieldType<uint8_t, "padding01">,
+        FieldType<ArrayWrapper<JoaatHash>, "NumHistorySpaceElems">,
+        FieldType<uint16_t, "padding02">,
+        FieldType<uint32_t, "padding03">,
         FieldType<ArrayWrapper<gameRadioStationTrackCategory_Track>, "Tracks">
     > 
     {
@@ -364,14 +370,13 @@ namespace AMT
     // Radio Station
     class gameRadioStation : public SimpleBaseMetadataType
     <
-        FieldType<int32_t, "Unknown1">,
-        FieldType<int32_t, "Index">,
-        FieldType<uint8_t, "Field08">, 
-        FieldType<uint8_t, "Unknown2">,
-        FieldType<int32_t, "Unknown3">, 
-        FieldType<int32_t, "Field14">,
-        FieldType<uint8_t, "Field18">,
-        
+        FieldType<int32_t, "unused">,
+        FieldType<int32_t, "WheelPosition">,
+        FieldType<uint8_t, "Genre">, 
+        FieldType<uint8_t, "padding01">,
+        FieldType<int32_t, "padding02">, 
+        FieldType<int32_t, "padding03">,
+        FieldType<uint8_t, "AmbientRadioVol">,
         // Station data
         FieldType<StringWrapper<>, "Name">,
         FieldType<ArrayWrapper<JoaatHash>, "TrackCategories">
@@ -414,30 +419,33 @@ namespace AMT
         gameRadioStationCategoryWeights(uint8_t *&data, uint32_t size) : SimpleBaseMetadataType(data, size) {}
     };
 
-    // Ped Struct
-    class gamePed_struct : public SimpleBaseMetadataType
+    // Ped Voice Group Item
+    class gamePed_VoiceGroupItem : public SimpleBaseMetadataType
     <
-        FieldType<JoaatHash, "__field0">,
-        FieldType<uint32_t, "__field4">
-    > 
+        FieldType<JoaatHash, "VoiceHash">,
+        FieldType<uint32_t, "ReferenceCount">
+    >
     {
     public:
-        static constexpr int Type = static_cast<int>(GameMetadataTypeId::PedStruct);
-        static constexpr const char* Name = "gamePed_struct";
+        static constexpr int Type = 0;
+        static constexpr const char* Name = "gamePed_VoiceGroupItem";
         
-        gamePed_struct() = default;
-        gamePed_struct(uint8_t *&data, uint32_t size) : SimpleBaseMetadataType(data, size) {}
+        gamePed_VoiceGroupItem() = default;
+        gamePed_VoiceGroupItem(uint8_t *&data, uint32_t size) : SimpleBaseMetadataType(data, size) {}
     };
 
     // Ped
-    class gamePed : public PlaceholderMetadataType<16, "gamePed"> 
+    class gamePed : public SimpleBaseMetadataType
+        <
+        FieldType<ArrayWrapper<gamePed_VoiceGroupItem, uint8_t>, "VoiceGroups">
+        >
     {
     public:
         static constexpr int Type = static_cast<int>(GameMetadataTypeId::Ped);
         static constexpr const char* Name = "gamePed";
-        
+
         gamePed() = default;
-        gamePed(uint8_t *&data, uint32_t size) : PlaceholderMetadataType(data, size) {}
+        gamePed(uint8_t*& data, uint32_t size) : SimpleBaseMetadataType(data, size) {}
     };
 
     // Train Station
@@ -721,7 +729,8 @@ namespace AMT
         gameTrainStation, 
         gameAutomobile,
         gameHeli,
-        gameBoat, gameWeapon, 
+        gameBoat, 
+        gameWeapon, 
         gameRadioStationList, 
         gameSoundRules,
         gameScriptedReport, 
