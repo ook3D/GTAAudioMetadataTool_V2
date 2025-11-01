@@ -438,7 +438,8 @@ namespace AMT
     class gamePed : public SimpleBaseMetadataType
         <
         FieldType<ArrayWrapper<gamePed_VoiceGroupItem, uint8_t>, "VoiceGroups">,
-        FieldType<ArrayWrapper<gamePed_VoiceGroupItem, uint8_t>, "MiniVoiceGroups">
+        FieldType<ArrayWrapper<gamePed_VoiceGroupItem, uint8_t>, "MiniVoiceGroups">,
+        FieldType<ArrayWrapper<gamePed_VoiceGroupItem, uint8_t>, "GangVoiceGroups">
         >
     {
     public:
