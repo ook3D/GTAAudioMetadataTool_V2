@@ -465,7 +465,7 @@ namespace AMT
     class gameAutomobile : public SimpleBaseMetadataType
     <
         FieldType<int32_t, "masterVolume">,
-        FieldType<int32_t, "nonPlayerFXComp">,
+        FieldType<int32_t, "MaxConeAttenuation">,
         FieldType<JoaatHash, "lowEngineLoop">,
         FieldType<JoaatHash, "highEngineLoop">,
         FieldType<JoaatHash, "lowExhaustLoop">,
@@ -485,8 +485,8 @@ namespace AMT
         FieldType<int32_t, "unk4">,
         FieldType<float, "unk5">,
         FieldType<float, "unk6">,
-        FieldType<int32_t, "unk7">,
-        FieldType<int32_t, "unk8">,
+        FieldType<int32_t, "unk7">, // Some kind of engine or exhaust submix
+        FieldType<int32_t, "unk8">, // Some kind of engine or exhaust submix
         FieldType<int32_t, "unk9">,
         FieldType<float, "unk10">,
         FieldType<float, "unk11">,
