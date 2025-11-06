@@ -535,7 +535,7 @@ namespace AMT
         FieldType<int32_t, "TurboSpinUpSpeed">,
         FieldType<int32_t, "VolumeBoost">,
         FieldType<int32_t, "ExhaustBoost">,
-        FieldType<int32_t, "unk24">,
+        FieldType<int32_t, "TransmissionBoost">,
         FieldType<JoaatHash, "jumpLandSound">,
         FieldType<int32_t, "JumpLandMinThresh">,
         FieldType<int32_t, "JumpLandMaxThresh">,

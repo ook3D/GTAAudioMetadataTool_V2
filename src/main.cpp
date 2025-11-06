@@ -85,7 +85,7 @@ void ProcessMetadataFiles(bool generateMode)
 
     const std::vector<std::string> soundFiles = 
     {
-        "SOUNDS.DAT15", "EP1_RADIO_SOUNDS.DAT15", "EP2_RADIO_SOUNDS.DAT15"
+        "SOUNDS.DAT15", "EP1_RADIO_SOUNDS.DAT15", "EP2_RADIO_SOUNDS.DAT15", "EP1_SOUNDS.DAT15", "EP2_SOUNDS.DAT15"
     };
 
     const std::vector<std::string> gameFiles = 
