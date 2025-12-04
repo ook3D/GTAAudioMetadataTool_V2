@@ -68,19 +68,19 @@ struct MetadataFileConfig
 
 void ProcessMetadataFiles(bool generateMode) 
 {
-    const std::vector<MetadataFileConfig> metadataFiles = 
+    const std::vector<std::string> categoriesFiles = 
     {
-        {"CATEGORIES.DAT15", 
-         [](const std::string& f) { SerialiseMetadata<AMT::CategoriesMetadataMgr>(f); },
-         [](const std::string& f) { DeserialiseMetadata<AMT::CategoriesMetadataMgr>(f); }},
-        
-        {"CURVES.DAT12", 
-         [](const std::string& f) { SerialiseMetadata<AMT::CurvesMetadataMgr>(f); },
-         [](const std::string& f) { DeserialiseMetadata<AMT::CurvesMetadataMgr>(f); }},
-        
-        {"EFFECTS.DAT11", 
-         [](const std::string& f) { SerialiseMetadata<AMT::EffectsMetadataMgr>(f); },
-         [](const std::string& f) { DeserialiseMetadata<AMT::EffectsMetadataMgr>(f); }},
+        "CATEGORIES.DAT15", "EP1_CATEGORIES.DAT15", "EP2_CATEGORIES.DAT15"
+    };
+
+    const std::vector<std::string> effectsFiles = 
+    {
+        "EFFECTS.DAT11", "EP1_EFFECTS.DAT11", "EP2_EFFECTS.DAT11"
+    };
+
+    const std::vector<std::string> curvesFiles = 
+    {
+        "CURVES.DAT12", "EP1_CURVES.DAT12", "EP2_CURVES.DAT12"
     };
 
     const std::vector<std::string> soundFiles = 
@@ -93,15 +93,39 @@ void ProcessMetadataFiles(bool generateMode)
         "GAME.DAT16", "EP1_GAME.DAT16", "EP1_RADIO_GAME.DAT16", "EP2_GAME.DAT16", "EP2_RADIO_GAME.DAT16"
     };
 
-    for (const auto& config : metadataFiles) 
+    for (const auto& filename : categoriesFiles) 
     {
         if (generateMode) 
         {
-            config.serializer(config.filename);
+            SerialiseMetadata<AMT::CategoriesMetadataMgr>(filename);
         } 
-        else
+        else 
         {
-            config.deserializer(config.filename);
+            DeserialiseMetadata<AMT::CategoriesMetadataMgr>(filename);
+        }
+    }
+
+    for (const auto& filename : effectsFiles) 
+    {
+        if (generateMode) 
+        {
+            SerialiseMetadata<AMT::EffectsMetadataMgr>(filename);
+        } 
+        else 
+        {
+            DeserialiseMetadata<AMT::EffectsMetadataMgr>(filename);
+        }
+    }
+
+    for (const auto& filename : curvesFiles) 
+    {
+        if (generateMode) 
+        {
+            SerialiseMetadata<AMT::CurvesMetadataMgr>(filename);
+        } 
+        else 
+        {
+            DeserialiseMetadata<AMT::CurvesMetadataMgr>(filename);
         }
     }
 
