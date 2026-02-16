@@ -134,14 +134,21 @@ namespace AMT
     };
 
     // Door
-    class gameDoor : public PlaceholderMetadataType<25, "gameDoor"> 
+    class gameDoor : public SimpleBaseMetadataType
+    <
+        FieldType<JoaatHash, "Brush">,
+        FieldType<JoaatHash, "Limit">,
+        FieldType<JoaatHash, "Open">,
+        FieldType<JoaatHash, "Close">,
+        FieldType<JoaatHash, "unk00">
+    >
     {
     public:
         static constexpr int Type = static_cast<int>(GameMetadataTypeId::Door);
         static constexpr const char* Name = "gameDoor";
         
         gameDoor() = default;
-        gameDoor(uint8_t *&data, uint32_t size) : PlaceholderMetadataType(data, size) {}
+        gameDoor(uint8_t *&data, uint32_t size) : SimpleBaseMetadataType(data, size) {}
     };
 
     // Cutscene Category
