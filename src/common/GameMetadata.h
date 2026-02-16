@@ -83,14 +83,42 @@ namespace AMT
     };
 
     // Collision
-    class gameCollision : public PlaceholderMetadataType<1, "gameCollision">
+    class gameCollision : public SimpleBaseMetadataType
+    <
+        FieldType<JoaatHash, "HardImpact">,
+        FieldType<JoaatHash, "ScrapeSound">,
+        FieldType<JoaatHash, "BreakSound">,
+        FieldType<JoaatHash, "BulletImpactSound">,
+        FieldType<JoaatHash, "Unk00">,
+        FieldType<uint16_t, "Unk01">,
+        FieldType<uint8_t, "Unk02">,
+        FieldType<JoaatHash, "FootstepSettings">,
+        FieldType<uint16_t, "Unk03">,
+        FieldType<JoaatHash, "ImpactStartOffsetCurve">,
+        FieldType<JoaatHash, "ImpactVolCurve">,
+        FieldType<JoaatHash, "ScrapePitchCurve">,
+        FieldType<JoaatHash, "ScrapeVolCurve">,
+        FieldType<JoaatHash, "FastTyreRoll">,
+        FieldType<JoaatHash, "DetailTyreRoll">,
+        FieldType<JoaatHash, "MainSkid">,
+        FieldType<JoaatHash, "SideSkid">,
+        FieldType<JoaatHash, "MetalShellCasing">,
+        FieldType<JoaatHash, "PlasticShellCasing">,
+        FieldType<JoaatHash, "RollSound">,
+        FieldType<JoaatHash, "RainLoop">,
+        FieldType<JoaatHash, "TyreBump">,
+        FieldType<JoaatHash, "ShockwaveSound">,
+        FieldType<JoaatHash, "RandomAmbient">,
+        FieldType<float, "Dirtiness">,
+        FieldType<uint8_t, "Unk04">
+    >
     {
     public:
         static constexpr int Type = static_cast<int>(GameMetadataTypeId::Collision);
         static constexpr const char* Name = "gameCollision";
         
         gameCollision() = default;
-        gameCollision(uint8_t *&data, uint32_t size) : PlaceholderMetadataType(data, size) {}
+        gameCollision(uint8_t *&data, uint32_t size) : SimpleBaseMetadataType(data, size) {}
     };
 
     // Clothing
