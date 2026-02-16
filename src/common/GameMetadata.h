@@ -89,11 +89,14 @@ namespace AMT
         FieldType<JoaatHash, "ScrapeSound">,
         FieldType<JoaatHash, "BreakSound">,
         FieldType<JoaatHash, "BulletImpactSound">,
-        FieldType<JoaatHash, "Unk00">,
-        FieldType<uint16_t, "Unk01">,
+        FieldType<uint16_t, "Unk00">,
+        FieldType<uint8_t, "Unk01">,
         FieldType<uint8_t, "Unk02">,
-        FieldType<JoaatHash, "FootstepSettings">,
         FieldType<uint16_t, "Unk03">,
+        FieldType<uint8_t, "Unk04">,
+        FieldType<JoaatHash, "FootstepSettings">,
+        FieldType<uint8_t, "Unk05">,
+        FieldType<uint8_t, "Unk06">,
         FieldType<JoaatHash, "ImpactStartOffsetCurve">,
         FieldType<JoaatHash, "ImpactVolCurve">,
         FieldType<JoaatHash, "ScrapePitchCurve">,
@@ -108,9 +111,7 @@ namespace AMT
         FieldType<JoaatHash, "RainLoop">,
         FieldType<JoaatHash, "TyreBump">,
         FieldType<JoaatHash, "ShockwaveSound">,
-        FieldType<JoaatHash, "RandomAmbient">,
-        FieldType<float, "Dirtiness">,
-        FieldType<uint8_t, "Unk04">
+        FieldType<JoaatHash, "RandomAmbient">
     >
     {
     public:
