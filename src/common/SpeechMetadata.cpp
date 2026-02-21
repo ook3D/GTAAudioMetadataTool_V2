@@ -10,7 +10,9 @@ void SpeechMetadataMgr::Read(std::istream &in)
     uint32_t numVarData = IoUtils::ReadData<uint32_t>(in);
     m_VariationData.resize(numVarData);
     if (numVarData > 0)
+    {
         IoUtils::ReadData(in, m_VariationData.data(), numVarData);
+    }
 
     uint32_t numContexts = IoUtils::ReadData<uint32_t>(in);
     m_Contexts.clear();
@@ -19,11 +21,11 @@ void SpeechMetadataMgr::Read(std::istream &in)
     for (uint32_t i = 0; i < numContexts; i++)
     {
         ContextEntry c;
-        c.bankNameIndex            = IoUtils::ReadData<uint32_t>(in);
+        c.bankNameIndex = IoUtils::ReadData<uint32_t>(in);
         c.variationDataOffsetBytes = IoUtils::ReadData<int32_t>(in);
-        c.nameHash                 = IoUtils::ReadData<uint32_t>(in);
-        c.contextData              = IoUtils::ReadData<uint8_t>(in);
-        c.numVariations            = IoUtils::ReadData<uint8_t>(in);
+        c.nameHash = IoUtils::ReadData<uint32_t>(in);
+        c.contextData = IoUtils::ReadData<uint8_t>(in);
+        c.numVariations = IoUtils::ReadData<uint8_t>(in);
         m_Contexts.push_back(c);
     }
 
@@ -75,6 +77,8 @@ void SpeechMetadataMgr::ToJson(ordered_json &j) const
 {
     // String table
     j["StringTable"] = m_Strings;
+    // Raw variation data blob
+    j["RawVariationData"] = m_VariationData;
 
     // Voices
     ordered_json voicesObj;
@@ -92,11 +96,11 @@ void SpeechMetadataMgr::ToJson(ordered_json &j) const
             const auto &ctx = m_Contexts[idx];
             ordered_json ctxJson;
 
-            ctxJson["nameHash"]    = HashManager::Instance()->HashToString(ctx.nameHash);
-            ctxJson["bankName"]    = (ctx.bankNameIndex < m_Strings.size())
-                                   ? m_Strings[ctx.bankNameIndex]
-                                   : std::to_string(ctx.bankNameIndex);
+            ctxJson["nameHash"] = HashManager::Instance()->HashToString(ctx.nameHash);
+            ctxJson["bankName"] = (ctx.bankNameIndex < m_Strings.size()) ? m_Strings[ctx.bankNameIndex] : std::to_string(ctx.bankNameIndex);
             ctxJson["contextData"] = ctx.contextData;
+            ctxJson["variationDataOffset"] = ctx.variationDataOffsetBytes;
+            ctxJson["numVariations"] = ctx.numVariations;
 
             // Variation data
             ordered_json varArr = ordered_json::array();
@@ -127,20 +131,33 @@ SpeechMetadataMgr::FromJson(const ordered_json &j)
     if (j.contains("StringTable"))
     {
         for (const auto &s : j.at("StringTable"))
+        {
             m_Strings.push_back(s.get<std::string>());
+        }
     }
 
     // Build a map from string -> index for bank name lookups
     std::unordered_map<std::string, uint32_t> stringIndex;
     for (uint32_t i = 0; i < m_Strings.size(); i++)
+    {
         stringIndex[m_Strings[i]] = i;
+    }
 
     m_Voices.clear();
     m_Contexts.clear();
     m_VariationData.clear();
 
-    if (!j.contains("Voices")) return;
+    // Load raw variation data blob if available
+    bool hasRawVarData = j.contains("RawVariationData");
+    if (hasRawVarData)
+    {
+        for (const auto &b : j.at("RawVariationData"))
+        {
+            m_VariationData.push_back(b.get<uint8_t>());
+        }
+    }
 
+    if (!j.contains("Voices")) return;
     for (const auto &[voiceKey, voiceVal] : j.at("Voices").items())
     {
         VoiceEntry v;
@@ -155,7 +172,6 @@ SpeechMetadataMgr::FromJson(const ordered_json &j)
         for (const auto &ctxJson : ctxArr)
         {
             ContextEntry c;
-
             JoaatHash ch;
             ch.FromJson(ctxJson.at("nameHash"));
             c.nameHash = ch.Hash;
@@ -164,29 +180,41 @@ SpeechMetadataMgr::FromJson(const ordered_json &j)
             std::string bankName = ctxJson.at("bankName").get<std::string>();
             auto it = stringIndex.find(bankName);
             if (it != stringIndex.end())
+            {
                 c.bankNameIndex = it->second;
+            }
             else
+            {
                 c.bankNameIndex = static_cast<uint32_t>(std::stoul(bankName));
-
+            }
             c.contextData = ctxJson.at("contextData").get<uint8_t>();
 
-            const auto &varArr = ctxJson.at("VariationData");
-            if (varArr.empty())
+            // Use raw offset/count if available
+            if (hasRawVarData && ctxJson.contains("variationDataOffset"))
             {
-                c.variationDataOffsetBytes = -1;
-                c.numVariations = static_cast<uint8_t>(varArr.size());
+                c.variationDataOffsetBytes = ctxJson.at("variationDataOffset").get<int32_t>();
+                c.numVariations = ctxJson.at("numVariations").get<uint8_t>();
             }
             else
             {
-                c.variationDataOffsetBytes = static_cast<int32_t>(m_VariationData.size());
-                c.numVariations = static_cast<uint8_t>(varArr.size());
-                for (const auto &vd : varArr)
-                    m_VariationData.push_back(vd.get<uint8_t>());
+                const auto &varArr = ctxJson.at("VariationData");
+                if (varArr.empty())
+                {
+                    c.variationDataOffsetBytes = -1;
+                    c.numVariations = static_cast<uint8_t>(varArr.size());
+                }
+                else
+                {
+                    c.variationDataOffsetBytes = static_cast<int32_t>(m_VariationData.size());
+                    c.numVariations = static_cast<uint8_t>(varArr.size());
+                    for (const auto &vd : varArr)
+                    {
+                        m_VariationData.push_back(vd.get<uint8_t>());
+                    }
+                }
             }
-
             m_Contexts.push_back(c);
         }
-
         m_Voices.push_back(v);
     }
 }
@@ -195,8 +223,9 @@ void SpeechMetadataMgr::Write(std::ostream &out)
 {
     IoUtils::WriteData<uint32_t>(out, static_cast<uint32_t>(m_VariationData.size()));
     if (!m_VariationData.empty())
-        out.write(reinterpret_cast<const char *>(m_VariationData.data()),
-                  m_VariationData.size());
+    {
+        out.write(reinterpret_cast<const char *>(m_VariationData.data()), m_VariationData.size());
+    }
 
     IoUtils::WriteData<uint32_t>(out, static_cast<uint32_t>(m_Contexts.size()));
     for (const auto &c : m_Contexts)
@@ -235,9 +264,7 @@ void SpeechMetadataMgr::Write(std::ostream &out)
             heap.append(winStr);
             heap.push_back('\0');
         }
-
-        out.write(reinterpret_cast<const char *>(offsets.data()),
-                  offsets.size() * 4);
+        out.write(reinterpret_cast<const char *>(offsets.data()), offsets.size() * 4);
         out.write(heap.data(), heap.size());
     }
 }
