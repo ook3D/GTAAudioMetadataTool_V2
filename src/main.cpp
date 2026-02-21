@@ -6,6 +6,7 @@
 #include "common/GameMetadata.h"
 #include "common/EffectsMetadata.h"
 #include "common/CurvesMetadata.h"
+#include "common/SpeechMetadata.h"
 
 #include <fstream>
 #include <functional>
@@ -88,9 +89,14 @@ void ProcessMetadataFiles(bool generateMode)
         "SOUNDS.DAT15", "EP1_RADIO_SOUNDS.DAT15", "EP2_RADIO_SOUNDS.DAT15", "EP1_SOUNDS.DAT15", "EP2_SOUNDS.DAT15"
     };
 
-    const std::vector<std::string> gameFiles = 
+    const std::vector<std::string> gameFiles =
     {
         "GAME.DAT16", "EP1_GAME.DAT16", "EP1_RADIO_GAME.DAT16", "EP2_GAME.DAT16", "EP2_RADIO_GAME.DAT16"
+    };
+
+    const std::vector<std::string> speechFiles =
+    {
+        "SPEECH.DAT", "EP1_SPEECH.DAT", "EP2_SPEECH.DAT"
     };
 
     for (const auto& filename : categoriesFiles) 
@@ -141,15 +147,27 @@ void ProcessMetadataFiles(bool generateMode)
         }
     }
 
-    for (const auto& filename : gameFiles) 
+    for (const auto& filename : gameFiles)
     {
-        if (generateMode) 
+        if (generateMode)
         {
             SerialiseMetadata<AMT::GameMetadataMgr>(filename);
-        } 
+        }
         else
         {
             DeserialiseMetadata<AMT::GameMetadataMgr>(filename);
+        }
+    }
+
+    for (const auto& filename : speechFiles)
+    {
+        if (generateMode)
+        {
+            SerialiseMetadata<AMT::SpeechMetadataMgr>(filename);
+        }
+        else
+        {
+            DeserialiseMetadata<AMT::SpeechMetadataMgr>(filename);
         }
     }
 }
