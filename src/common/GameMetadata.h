@@ -111,7 +111,9 @@ namespace AMT
         FieldType<JoaatHash, "RainLoop">,
         FieldType<JoaatHash, "TyreBump">,
         FieldType<JoaatHash, "ShockwaveSound">,
-        FieldType<JoaatHash, "RandomAmbient">
+        FieldType<JoaatHash, "RandomAmbient">,
+        FieldType<uint8_t, "Unk07">,
+        FieldType<JoaatHash, "DoorMaterial">
     >
     {
     public:
