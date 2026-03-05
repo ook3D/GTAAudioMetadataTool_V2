@@ -1,6 +1,5 @@
--- GTAAudioMetadataTool Premake5 Configuration
-
 workspace "GTAAudioMetadataTool"
+location "src"
 architecture "x64"
 configurations { "Debug", "Release" }
 startproject "ivam"
