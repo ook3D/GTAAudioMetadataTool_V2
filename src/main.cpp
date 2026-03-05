@@ -1,55 +1,82 @@
 #include "pch.h"
-#include "common/SoundsMetadata.h"
-#include "common/MetadataMgr.h"
+#include "common/MetadataFile.h"
+#include "common/MetadataRegistry.h"
 #include "common/HashManager.h"
-#include "common/CategoryMetadata.h"
-#include "common/GameMetadata.h"
-#include "common/EffectsMetadata.h"
-#include "common/CurvesMetadata.h"
 #include "common/SpeechMetadata.h"
 
 #include <fstream>
 #include <functional>
 #include <vector>
 
+static AMT::MetadataRegistry g_Registry;
+
+void DeserialiseMetadata(const std::string& file, const std::string& schemaKey, bool debugMode = false)
+{
+    const AMT::MetadataFileDef* def = g_Registry.GetFileDef(schemaKey);
+    if (!def) return;
+
+    std::ifstream input(file, std::ios_base::binary);
+    if (!input.good()) return;
+
+    AMT::MetadataFile mgr(def, debugMode);
+    mgr.Read(input);
+
+    AMT::ordered_json j;
+    mgr.ToJson(j);
+
+    std::ofstream out(file + ".json");
+    out << j.dump(4);
+}
+
+void SerialiseMetadata(const std::string& file, const std::string& schemaKey)
+{
+    const AMT::MetadataFileDef* def = g_Registry.GetFileDef(schemaKey);
+    if (!def) return;
+
+    std::ifstream input(file + ".json");
+    if (!input.good()) return;
+
+    AMT::ordered_json j;
+    input >> j;
+
+    AMT::MetadataFile mgr(def);
+    mgr.FromJson(j);
+
+    std::ofstream out(file + ".GEN", std::ios_base::binary);
+    mgr.Write(out);
+}
+
 template <typename T>
-void DeserialiseMetadata(const std::string &file)
+void DeserialiseMetadataLegacy(const std::string& file)
 {
     T mgr;
     std::ifstream input(file, std::ios_base::binary);
-
-    if (!input.good())
-    {
-        return;
-    }
+    if (!input.good()) return;
 
     mgr.Read(input);
 
     AMT::ordered_json j;
     mgr.ToJson(j);
     std::ofstream out(file + ".json");
-
     out << j.dump(4);
 }
 
 template <typename T>
-void SerialiseMetadata(const std::string &file)
+void SerialiseMetadataLegacy(const std::string& file)
 {
     std::ifstream input(file + ".json");
-    if (!input.good())
-    {
-        return;
-    }
+    if (!input.good()) return;
 
     AMT::ordered_json j;
     input >> j;
 
-    T mgr = j;
+    T mgr;
+    mgr.FromJson(j);
     std::ofstream out(file + ".GEN", std::ios_base::binary);
     mgr.Write(out);
 }
 
-void ReadHashes(const std::string &file)
+void ReadHashes(const std::string& file)
 {
     std::ifstream input(file);
     std::string key;
@@ -59,125 +86,90 @@ void ReadHashes(const std::string &file)
     }
 }
 
-// Configuration for metadata files
-struct MetadataFileConfig 
+void ProcessMetadataFiles(bool generateMode, bool debugMode)
 {
-    std::string filename;
-    std::function<void(const std::string&)> serializer;
-    std::function<void(const std::string&)> deserializer;
-};
-
-void ProcessMetadataFiles(bool generateMode) 
-{
-    const std::vector<std::string> categoriesFiles = 
-    {
-        "CATEGORIES.DAT15", "EP1_CATEGORIES.DAT15", "EP2_CATEGORIES.DAT15"
+    const std::vector<std::pair<std::string, std::string>> categoriesFiles = {
+        {"CATEGORIES.DAT15", "categories"},
+        {"EP1_CATEGORIES.DAT15", "categories"},
+        {"EP2_CATEGORIES.DAT15", "categories"}
     };
 
-    const std::vector<std::string> effectsFiles = 
-    {
-        "EFFECTS.DAT11", "EP1_EFFECTS.DAT11", "EP2_EFFECTS.DAT11"
+    const std::vector<std::pair<std::string, std::string>> effectsFiles = {
+        {"EFFECTS.DAT11", "effects"},
+        {"EP1_EFFECTS.DAT11", "effects"},
+        {"EP2_EFFECTS.DAT11", "effects"}
     };
 
-    const std::vector<std::string> curvesFiles = 
-    {
-        "CURVES.DAT12", "EP1_CURVES.DAT12", "EP2_CURVES.DAT12"
+    const std::vector<std::pair<std::string, std::string>> curvesFiles = {
+        {"CURVES.DAT12", "curves"},
+        {"EP1_CURVES.DAT12", "curves"},
+        {"EP2_CURVES.DAT12", "curves"}
     };
 
-    const std::vector<std::string> soundFiles = 
-    {
-        "SOUNDS.DAT15", "EP1_RADIO_SOUNDS.DAT15", "EP2_RADIO_SOUNDS.DAT15", "EP1_SOUNDS.DAT15", "EP2_SOUNDS.DAT15"
+    const std::vector<std::pair<std::string, std::string>> soundFiles = {
+        {"SOUNDS.DAT15", "sounds"},
+        {"EP1_RADIO_SOUNDS.DAT15", "sounds"},
+        {"EP2_RADIO_SOUNDS.DAT15", "sounds"},
+        {"EP1_SOUNDS.DAT15", "sounds"},
+        {"EP2_SOUNDS.DAT15", "sounds"}
     };
 
-    const std::vector<std::string> gameFiles =
-    {
-        "GAME.DAT16", "EP1_GAME.DAT16", "EP1_RADIO_GAME.DAT16", "EP2_GAME.DAT16", "EP2_RADIO_GAME.DAT16"
+    const std::vector<std::pair<std::string, std::string>> gameFiles = {
+        {"GAME.DAT16", "game"},
+        {"EP1_GAME.DAT16", "game"},
+        {"EP1_RADIO_GAME.DAT16", "game"},
+        {"EP2_GAME.DAT16", "game"},
+        {"EP2_RADIO_GAME.DAT16", "game"}
     };
 
-    const std::vector<std::string> speechFiles =
-    {
+    const std::vector<std::string> speechFiles = {
         "SPEECH.DAT", "EP1_SPEECH.DAT", "EP2_SPEECH.DAT"
     };
 
-    for (const auto& filename : categoriesFiles) 
-    {
-        if (generateMode) 
+    auto processFiles = [&](const std::vector<std::pair<std::string, std::string>>& files) {
+        for (const auto& [filename, schema] : files)
         {
-            SerialiseMetadata<AMT::CategoriesMetadataMgr>(filename);
-        } 
-        else 
-        {
-            DeserialiseMetadata<AMT::CategoriesMetadataMgr>(filename);
+            if (generateMode)
+                SerialiseMetadata(filename, schema);
+            else
+                DeserialiseMetadata(filename, schema, debugMode);
         }
-    }
+    };
 
-    for (const auto& filename : effectsFiles) 
-    {
-        if (generateMode) 
-        {
-            SerialiseMetadata<AMT::EffectsMetadataMgr>(filename);
-        } 
-        else 
-        {
-            DeserialiseMetadata<AMT::EffectsMetadataMgr>(filename);
-        }
-    }
-
-    for (const auto& filename : curvesFiles) 
-    {
-        if (generateMode) 
-        {
-            SerialiseMetadata<AMT::CurvesMetadataMgr>(filename);
-        } 
-        else 
-        {
-            DeserialiseMetadata<AMT::CurvesMetadataMgr>(filename);
-        }
-    }
-
-    for (const auto& filename : soundFiles) 
-    {
-        if (generateMode) 
-        {
-            SerialiseMetadata<AMT::SoundsMetadataMgr>(filename);
-        } 
-        else 
-        {
-            DeserialiseMetadata<AMT::SoundsMetadataMgr>(filename);
-        }
-    }
-
-    for (const auto& filename : gameFiles)
-    {
-        if (generateMode)
-        {
-            SerialiseMetadata<AMT::GameMetadataMgr>(filename);
-        }
-        else
-        {
-            DeserialiseMetadata<AMT::GameMetadataMgr>(filename);
-        }
-    }
+    processFiles(categoriesFiles);
+    processFiles(effectsFiles);
+    processFiles(curvesFiles);
+    processFiles(soundFiles);
+    processFiles(gameFiles);
 
     for (const auto& filename : speechFiles)
     {
         if (generateMode)
-        {
-            SerialiseMetadata<AMT::SpeechMetadataMgr>(filename);
-        }
+            SerialiseMetadataLegacy<AMT::SpeechMetadataMgr>(filename);
         else
-        {
-            DeserialiseMetadata<AMT::SpeechMetadataMgr>(filename);
-        }
+            DeserialiseMetadataLegacy<AMT::SpeechMetadataMgr>(filename);
     }
 }
 
-int main(int argc, char **argv) 
+int main(int argc, char** argv)
 {
     ReadHashes("Hashes.txt");
-    
-    const bool generateMode = (argc == 2 && std::string(argv[1]) == "gen");
-    ProcessMetadataFiles(generateMode);
+
+    g_Registry.RegisterAll();
+
+    bool generateMode = false;
+    bool debugMode = false;
+
+    if (argc >= 2)
+    {
+        std::string arg(argv[1]);
+        if (arg == "gen")
+            generateMode = true;
+        else if (arg == "debug")
+            debugMode = true;
+    }
+
+    ProcessMetadataFiles(generateMode, debugMode);
 
     return 0;
 }
