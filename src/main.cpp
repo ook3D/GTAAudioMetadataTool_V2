@@ -4,6 +4,8 @@
 #include "common/HashManager.h"
 #include "common/SpeechMetadata.h"
 
+#include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <functional>
 #include <vector>
@@ -86,68 +88,95 @@ void ReadHashes(const std::string& file)
     }
 }
 
+std::vector<std::string> GlobFiles(const std::string& extension)
+{
+    std::vector<std::string> results;
+    std::string extLower = extension;
+    std::transform(extLower.begin(), extLower.end(), extLower.begin(), ::tolower);
+
+    for (const auto& entry : std::filesystem::directory_iterator("."))
+    {
+        if (!entry.is_regular_file()) continue;
+
+        std::string filename = entry.path().filename().string();
+        std::string filenameLower = filename;
+        std::transform(filenameLower.begin(), filenameLower.end(), filenameLower.begin(), ::tolower);
+
+        if (filenameLower.size() >= extLower.size() && filenameLower.compare(filenameLower.size() - extLower.size(), extLower.size(), extLower) == 0)
+        {
+            results.push_back(filename);
+        }
+    }
+    return results;
+}
+
 void ProcessMetadataFiles(bool generateMode, bool debugMode)
 {
-    const std::vector<std::pair<std::string, std::string>> categoriesFiles = {
-        {"CATEGORIES.DAT15", "categories"},
-        {"EP1_CATEGORIES.DAT15", "categories"},
-        {"EP2_CATEGORIES.DAT15", "categories"}
+    const std::vector<std::pair<std::string, std::string>> extensionSchemaMap = {
+        {".dat15",  "categories"},
+        {".dat11",  "effects"},
+        {".dat12",  "curves"},
     };
 
-    const std::vector<std::pair<std::string, std::string>> effectsFiles = {
-        {"EFFECTS.DAT11", "effects"},
-        {"EP1_EFFECTS.DAT11", "effects"},
-        {"EP2_EFFECTS.DAT11", "effects"}
+    const std::vector<std::pair<std::string, std::string>> suffixSchemaMap = {
+        {"categories.dat15", "categories"},
+        {"sounds.dat15",     "sounds"},
+        {"game.dat16",       "game"},
+        {"effects.dat11",    "effects"},
+        {"curves.dat12",     "curves"},
     };
 
-    const std::vector<std::pair<std::string, std::string>> curvesFiles = {
-        {"CURVES.DAT12", "curves"},
-        {"EP1_CURVES.DAT12", "curves"},
-        {"EP2_CURVES.DAT12", "curves"}
+    auto getSchemaForFile = [&](const std::string& filename) -> std::string {
+        std::string lower = filename;
+        std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+        for (const auto& [suffix, schema] : suffixSchemaMap)
+        {
+            if (lower.size() >= suffix.size() &&
+                lower.compare(lower.size() - suffix.size(), suffix.size(), suffix) == 0)
+            {
+                return schema;
+            }
+        }
+        return {};
     };
 
-    const std::vector<std::pair<std::string, std::string>> soundFiles = {
-        {"SOUNDS.DAT15", "sounds"},
-        {"EP1_RADIO_SOUNDS.DAT15", "sounds"},
-        {"EP2_RADIO_SOUNDS.DAT15", "sounds"},
-        {"EP1_SOUNDS.DAT15", "sounds"},
-        {"EP2_SOUNDS.DAT15", "sounds"}
-    };
+    const std::vector<std::string> extensions = {".dat15", ".dat16", ".dat11", ".dat12"};
+    for (const auto& ext : extensions)
+    {
+        for (const auto& filename : GlobFiles(ext))
+        {
+            std::string schema = getSchemaForFile(filename);
+            if (schema.empty()) continue;
 
-    const std::vector<std::pair<std::string, std::string>> gameFiles = {
-        {"GAME.DAT16", "game"},
-        {"EP1_GAME.DAT16", "game"},
-        {"EP1_RADIO_GAME.DAT16", "game"},
-        {"EP2_GAME.DAT16", "game"},
-        {"EP2_RADIO_GAME.DAT16", "game"}
-    };
+            if (generateMode)
+            {
+                SerialiseMetadata(filename, schema);
+            }
+            else
+            {
+                DeserialiseMetadata(filename, schema, debugMode);
+            }
+        }
+    }
 
-    const std::vector<std::string> speechFiles = {
-        "SPEECH.DAT", "EP1_SPEECH.DAT", "EP2_SPEECH.DAT"
-    };
+    // Process speech files
+    for (const auto& filename : GlobFiles(".dat"))
+    {
+        std::string lower = filename;
+        std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
 
-    auto processFiles = [&](const std::vector<std::pair<std::string, std::string>>& files) {
-        for (const auto& [filename, schema] : files)
+        // Only match files ending in "speech.dat" to avoid matching other .dat files
+        if (lower.size() >= 10 && lower.compare(lower.size() - 10, 10, "speech.dat") == 0)
         {
             if (generateMode)
-                SerialiseMetadata(filename, schema);
+            {
+                SerialiseMetadataLegacy<AMT::SpeechMetadataMgr>(filename);
+            }
             else
-                DeserialiseMetadata(filename, schema, debugMode);
+            {
+                DeserialiseMetadataLegacy<AMT::SpeechMetadataMgr>(filename);
+            }
         }
-    };
-
-    processFiles(categoriesFiles);
-    processFiles(effectsFiles);
-    processFiles(curvesFiles);
-    processFiles(soundFiles);
-    processFiles(gameFiles);
-
-    for (const auto& filename : speechFiles)
-    {
-        if (generateMode)
-            SerialiseMetadataLegacy<AMT::SpeechMetadataMgr>(filename);
-        else
-            DeserialiseMetadataLegacy<AMT::SpeechMetadataMgr>(filename);
     }
 }
 
@@ -164,12 +193,15 @@ int main(int argc, char** argv)
     {
         std::string arg(argv[1]);
         if (arg == "gen")
+        {
             generateMode = true;
+        }
         else if (arg == "debug")
+        {
             debugMode = true;
+        }
     }
 
     ProcessMetadataFiles(generateMode, debugMode);
-
     return 0;
 }
