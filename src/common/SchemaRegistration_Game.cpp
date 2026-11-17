@@ -519,6 +519,10 @@ namespace AMT
 
         }};
 
+        // these objects are 4-byte aligned in the original file
+        def.types[0].alignment = 4;
+        def.types[23].alignment = 4;
+
         registry["game"] = std::move(def);
     }
 } // namespace AMT

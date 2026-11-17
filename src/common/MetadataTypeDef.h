@@ -12,6 +12,7 @@ namespace AMT
         int id;
         std::string name;
         std::vector<FieldDef> fields;
+        uint32_t alignment = 1; // required start alignment of the object in the data blob (after the separator byte)
     };
 
     struct MetadataFileDef

@@ -26,6 +26,7 @@ namespace AMT
 
         const std::string& GetName() const { return m_Name; }
         void SetName(const std::string& name) { m_Name = name; }
+        int GetTypeId() const { return m_TypeId; }
 
     private:
         uint32_t GetHeaderHeaderSize() const;

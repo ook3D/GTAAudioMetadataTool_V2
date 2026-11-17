@@ -88,6 +88,15 @@ namespace AMT
             uint8_t zero = 0;
             IoUtils::WriteData(out, zero); // null padding byte
 
+            auto typeIt = m_FileDef->types.find(obj.GetTypeId());
+            if (typeIt != m_FileDef->types.end() && typeIt->second.alignment > 1)
+            {
+                while (static_cast<uint64_t>(out.tellp()) % typeIt->second.alignment != 0)
+                {
+                    IoUtils::WriteData(out, zero);
+                }
+            }
+
             m_InternalObjectOffsets.push_back(static_cast<uint32_t>(out.tellp()));
             obj.Write(out, nameOffset);
 
