@@ -4,14 +4,37 @@
 #include <iomanip>
 #include <cmath>
 #include <cstring>
+#include <charconv>
+#include <cstdlib>
 
 namespace AMT
 {
     namespace FieldIO
     {
-        static double RoundForJson(float f)
+        // Shortest decimal that round-trips the float, so dat -> json -> dat is lossless
+        static double FloatToJson(float f)
         {
-            return std::round(static_cast<double>(f) * 1000.0) / 1000.0;
+            double exact = static_cast<double>(f);
+            if (!std::isfinite(f))
+            {
+                return exact;
+            }
+
+            char buf[64];
+            auto res = std::to_chars(buf, buf + sizeof(buf) - 1, f);
+            if (res.ec != std::errc())
+            {
+                return exact;
+            }
+            *res.ptr = '\0';
+
+            double d = std::strtod(buf, nullptr);
+            float back = static_cast<float>(d);
+            if (memcmp(&back, &f, sizeof(float)) == 0)
+            {
+                return d;
+            }
+            return exact;
         }
 
         static std::string ToHex(const uint8_t* data, uint32_t size)
@@ -149,7 +172,7 @@ namespace AMT
                 case FieldKind::Float:
                 {
                     float v; memcpy(&v, data, 4); data += 4;
-                    out = RoundForJson(v);
+                    out = FloatToJson(v);
                     break;
                 }
                 case FieldKind::Hash:

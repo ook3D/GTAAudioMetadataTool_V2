@@ -186,6 +186,13 @@ int main(int argc, char** argv)
 
     g_Registry.RegisterAll();
 
+    int duplicateErrors = 0;
+    g_Registry.CheckDuplicateFieldNames(duplicateErrors);
+    if (duplicateErrors > 0)
+    {
+        return 1;
+    }
+
     bool generateMode = false;
     bool debugMode = false;
 
