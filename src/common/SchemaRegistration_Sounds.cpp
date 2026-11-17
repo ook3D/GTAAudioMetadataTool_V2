@@ -21,7 +21,7 @@ namespace AMT
             {12, "MATH_OPERATION_RAND"}, 
             {13, "MATH_OPERATION_SIN"},
             {14, "MATH_OPERATION_COS"}, 
-            {15, "MATH_OPERATION_SQRT"},
+            {15, "MATH_OPERATION_SQRT"}, // IV computes fabs(A) here (same case as ABS)
             {16, "MATH_OPERATION_DBTOLINEAR"}, 
             {17, "MATH_OPERATION_LINEARTODB"},
             {18, "MATH_OPERATION_PITCHTORATIO"}, 
@@ -38,6 +38,15 @@ namespace AMT
             {29, "MATH_OPERATION_SCALEDSQUARE"},
             {30, "MATH_OPERATION_SMOOTH"},
             {31, "MATH_OPERATION_GETSCALEDTIME"}
+        };
+    }
+
+    static std::vector<std::pair<int64_t, std::string>> CrossfadeModeEnum()
+    {
+        return {
+            {0, "CROSSFADE_MODE_FIXED"},     // evaluated once on play, inaudible child killed
+            {1, "CROSSFADE_MODE_BOTH"},      // re-evaluated every frame, both children kept
+            {2, "CROSSFADE_MODE_RETRIGGER"}  // per frame; kill/restart only outside Hysteresis
         };
     }
 
@@ -60,61 +69,61 @@ namespace AMT
         def.hasNameOffset = true;
 
         def.headerFields = {
-            UInt32("Flags"),
-            UInt16("__unk09"),
+            UInt32("Flags"), // 2-bit tristates: 0 false, 1 true, 2 unset
+            UInt16("ParentOverrides"), // bit0 Volume, 1 Pitch, 2 Pan, 3 PreDelay, 4 StartOffset, 5 Attack?, 6 Release?, 7 Doppler, 8 VolumeCurve?, 9 VolumeCurveScale, 10 SpeakerMask
             OptionalBitfield("Header", {
                 Int16("Volume"),
                 UInt16("VolumeVariance"),
                 Int16("Pitch"),
                 UInt16("PitchVariance"),
-                UInt16("Pan"),
+                Int16("Pan"), // -1 = no pan, else degrees
                 UInt16("PanVariance"),
-                Int16("PreDelay"),
+                UInt16("PreDelay"),
                 UInt16("PreDelayVariance"),
                 Int32("StartOffset"),
                 Int32("StartOffsetVariance"),
                 UInt16("AttackTime"),
-                UInt16("ReleaseTime"),
+                Int16("ReleaseTime"), // -1 = none
                 UInt16("DopplerFactor"),
                 Hash("CategoryHash"),
                 Hash("VolumeCurve"),
                 UInt16("VolumeCurveScale"),
-                Int8("SpeakerMask"),
-                Int8("EffectRoute"),
+                UInt8("SpeakerMask"),
+                UInt8("EffectRoute"),
                 Hash("VolumeVariable"),
                 Hash("PitchVariable"),
                 Hash("PanVariable"),
-                Hash("UnkVariable2"),
-                Hash("UnkVariable3"),
+                Hash("PreDelayVariable"),
+                Hash("StartOffsetVariable"),
                 Hash("CutoffVariable")
             })
         };
 
         def.types[12] = {12, "audSimpleSound", {
-            UInt32("WaveSlotIndex"),
-            Hash("ArchiveHash", false, true),
-            Hash("SoundHash")
+            UInt32("WaveSlotPtr"), // runtime audWaveSlot* cache, 0 in file
+            Hash("BankName", false, true),
+            Hash("WaveName") // wave name within the bank, not a sound ref
         }};
 
         def.types[13] = {13, "audMultitrackSound", {
             Array("Tracks", {
                 Hash("TrackHash", true),
-                UInt32("unused")
+                Hash("ChildName") // per-child reference name used by GetChildSoundReference
             })
         }};
 
         def.types[1] = {1, "audLoopingSound", {
-            UInt16("LoopCount"),
+            Int16("LoopCount"), // -1 = infinite
             UInt16("LoopCountVariance"),
             Hash("SoundHash", true)
         }};
 
         def.types[2] = {2, "audEnvelopeSound", {
-            UInt16("Attack"),
-            UInt16("Decay"),
-            UInt8("Sustain"),
-            Int32("Hold"),
-            Int32("Release"),
+            UInt16("Attack"), // ms
+            UInt16("Decay"), // ms
+            UInt8("Sustain"), // percent
+            Int32("Hold"), // ms, -1 = hold until stopped
+            Int32("Release"), // ms, -1 = no release
             Hash("AttackCurve"),
             Hash("DecayCurve"),
             Hash("ReleaseCurve"),
@@ -127,18 +136,18 @@ namespace AMT
         }};
 
         def.types[3] = {3, "audTwinLoopSound", {
-            Int16("MinSwapTime"),
-            Int16("MaxSwapTime"),
-            Int16("MinCrossfadeTime"),
-            Int16("MaxCrossfadeTime"),
-            Hash("CrossfadeCurve"),
+            UInt16("MinSwapTime"), // ms
+            UInt16("MaxSwapTime"), // ms
+            UInt16("MinCrossfadeTime"), // ms
+            UInt16("MaxCrossfadeTime"), // ms
+            Hash("CrossfadeCurve"), // must be EQUAL_POWER_RISE or LINEAR_FALL
             Hash("MinSwapTimeVariable"),
             Hash("MaxSwapTimeVariable"),
             Hash("MinCrossfadeTimeVariable"),
             Hash("MaxCrossfadeTimeVariable"),
             Array("Sounds", {
                 Hash("SoundHash", true),
-                UInt32("unused")
+                Hash("ChildName")
             })
         }};
 
@@ -147,8 +156,8 @@ namespace AMT
 
         def.types[5] = {5, "audOnStopSound", {
             Hash("ChildSound", true),
-            Hash("OnPauseSound", true),
-            Hash("OnEndSound", true)
+            Hash("OnStopSound", true), // played when stopped
+            Hash("OnFinishedSound", true) // played when child ends naturally
         }};
 
         def.types[6] = {6, "audWrapperSound", {
@@ -158,15 +167,15 @@ namespace AMT
         def.types[7] = {7, "audSequentialSound", {
             Array("Sounds", {
                 Hash("SoundHash", true),
-                UInt32("unused")
+                Hash("ChildName")
             })
         }};
 
         def.types[8] = {8, "audStreamingSound", {
-            UInt32("Duration"),
+            UInt32("Duration"), // ms, 0 = use wave length
             Array("Sounds", {
                 Hash("SoundHash", true),
-                UInt32("unused")
+                Hash("ChildName")
             })
         }};
 
@@ -181,15 +190,15 @@ namespace AMT
         def.types[10] = {10, "audCrossfadeSound", {
             Hash("NearSound", true),
             Hash("FarSound", true),
-            UInt8("Mode"),
+            Enum("Mode", FieldKind::UInt8, CrossfadeModeEnum()),
             Float("MinDistance"),
             Float("MaxDistance"),
-            Int32("Hysteresis"),
-            Hash("CrossfadeCurve"),
-            Hash("DistanceVariable"),
+            Float("Hysteresis"),
             Hash("MinDistanceVariable"),
             Hash("MaxDistanceVariable"),
-            Hash("CrossfadeVariable")
+            Hash("HysteresisVariable"), // not read by the game
+            Hash("CrossfadeVariable"),
+            Hash("CrossfadeCurve")
         }};
 
         def.types[11] = {11, "audCollapsingStereoSound", {
@@ -202,13 +211,13 @@ namespace AMT
             Hash("CrossfadeOverrideVariable"),
             Hash("FrontendLeftPanVariable"),
             Hash("FrontendRightPanVariable"),
-            UInt8("Mode")
+            Enum("Mode", FieldKind::UInt8, CrossfadeModeEnum())
         }};
 
         def.types[14] = {14, "audRandomizedSound", {
-            UInt32("unused"),
-            UInt8("HistoryIndex"),
-            Array("HistorySpace", {{"", FieldKind::UInt8}}),
+            Hash("PlayDirectionVariable"), // sequential mode: value < 0 steps backwards
+            UInt8("HistoryIndex"), // runtime
+            Array("HistorySpace", {{"", FieldKind::UInt8}}), // runtime no-repeat ring buffer, 0xFF = empty
             Array("Sounds", {
                 Hash("SoundHash", true),
                 Float("Weight")
@@ -229,7 +238,7 @@ namespace AMT
 
         def.types[18] = {18, "audVariablePrintValueSound", {
             Hash("VariableHash"),
-            FixedArray("Value", {{"", FieldKind::UInt8}}, 15)
+            String("Value") // editor text, not read by the game
         }};
 
         // empty
@@ -243,8 +252,8 @@ namespace AMT
             Hash("SoundHash", true),
             Array("Variables", {
                 Hash("Hash"),
-                Float("Data"),
-                UInt8("VariableType")
+                Float("Data"), // initial value
+                UInt8("VariableType") // 1 = code-writable (requested settings) slot, else sound-local
             })
         }};
 
