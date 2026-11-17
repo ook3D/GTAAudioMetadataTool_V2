@@ -140,10 +140,26 @@ void ProcessMetadataFiles(bool generateMode, bool debugMode)
         return {};
     };
 
+    // In gen mode the source is "<name>.json", so look for those and strip ".json";
+    // the original binary file does not need to exist.
+    const std::string jsonSuffix = ".json";
+    auto globSources = [&](const std::string& ext) -> std::vector<std::string> {
+        if (!generateMode)
+        {
+            return GlobFiles(ext);
+        }
+        std::vector<std::string> names = GlobFiles(ext + jsonSuffix);
+        for (auto& name : names)
+        {
+            name.resize(name.size() - jsonSuffix.size());
+        }
+        return names;
+    };
+
     const std::vector<std::string> extensions = {".dat15", ".dat16", ".dat11", ".dat12"};
     for (const auto& ext : extensions)
     {
-        for (const auto& filename : GlobFiles(ext))
+        for (const auto& filename : globSources(ext))
         {
             std::string schema = getSchemaForFile(filename);
             if (schema.empty()) continue;
@@ -160,7 +176,7 @@ void ProcessMetadataFiles(bool generateMode, bool debugMode)
     }
 
     // Process speech files
-    for (const auto& filename : GlobFiles(".dat"))
+    for (const auto& filename : globSources(".dat"))
     {
         std::string lower = filename;
         std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
